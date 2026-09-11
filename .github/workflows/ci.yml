@@ -1,0 +1,71 @@
+# CI for the Sigil-Logic claferIG fork (Sigil-Logic/clafer#7).
+# x86_64 Linux runners: full build + test (including the MiniSat-dependent
+# strMapCheck, which cannot run on Apple Silicon), plus capture of the
+# Alloy 4.2 behavioral baseline that feeds Sigil-Logic/clafer#5.
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-test-baseline:
+    name: Build, test, and Alloy 4.2 baseline (x86_64 Linux)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: claferIG
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: claferIG
+
+      - name: Check out sibling clafer (stack package '../clafer')
+        uses: actions/checkout@v4
+        with:
+          repository: Sigil-Logic/clafer
+          path: clafer
+
+      - name: Set up Java (x86_64 Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up GHC and stack
+        uses: haskell-actions/setup@v2
+        with:
+          enable-stack: true
+          stack-version: 'latest'
+
+      - name: Cache stack
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.stack
+            claferIG/.stack-work
+            clafer/.stack-work
+          key: ${{ runner.os }}-stack-claferig-${{ hashFiles('claferIG/stack.yaml', 'claferIG/claferIG.cabal') }}
+          restore-keys: |
+            ${{ runner.os }}-stack-claferig-
+
+      - name: Extract the MiniSat prover native (amd64-linux)
+        run: make lib
+
+      - name: Build (stack build + jar/native staging)
+        run: make build
+
+      - name: Test (full suite, strMapCheck included)
+        run: make test
+
+      - name: Capture the Alloy 4.2 behavioral baseline
+        run: bash scripts/capture-alloy42-baseline.sh 2 baseline-out
+
+      - name: Upload baseline artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: alloy42-baseline
+          path: claferIG/baseline-out
+          if-no-files-found: error
