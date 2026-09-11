@@ -1,0 +1,19 @@
+Exact two-repository provenance of this frozen capture (recorded post hoc
+per the Cycle 1 review finding, HOARDE Codex, Medium: provenance):
+
+run:                    https://github.com/Sigil-Logic/claferIG/actions/runs/34554645482
+claferIG PR head:       3a5a7f7f3346b1520ff9369222cbb6f063f133a4 (feature/clafer-7-x86-64-ci)
+claferIG base (master): 195d6076dbc1ff4eb0e5ea178aa606f68f2f9bf0
+checked-out commit:     22d3115ba90f8ffe2e14f1f5b965881282fcdcf2
+                        (synthetic pull_request merge of head into base; ephemeral ref,
+                         recorded as "commit:" in environment.txt inside the capture)
+sibling clafer:         65ba03cbc819f2da84e9782f967352f01a672928 (master at run time)
+
+Behavioral note: the PR branch adds only CI, script, and evidence files —
+no Haskell source changes — so the captured behavior equals claferIG
+master (195d607...) built against clafer master (65ba03c...).
+
+Future captures record both repository SHAs directly in environment.txt
+(scripts/capture-alloy42-baseline.sh as of this PR); this file exists
+because the frozen artifact predates that fix and is not regenerated
+(manifest.sha256 and baseline.tar.gz stay byte-identical to the run).

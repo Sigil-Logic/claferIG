@@ -17,10 +17,11 @@ This directory freezes the **Alloy 4.2 / claferIG 0.5.1 behavioral baseline** of
 | `environment.txt` | Capture environment and exact invocation (SL-DOM-P05 reproducibility) |
 | `exit-codes.txt` | Per-model exit code and instance count |
 | `manifest.sha256` | SHA-256 of every captured file (SL-DOM-P04 evidence integrity) |
+| `provenance.txt` | Exact two-repository provenance (claferIG head/base and sibling clafer SHAs) — added per the Cycle 1 review; the frozen artifact itself is unchanged |
 | `baseline.tar.gz` | The full capture tree: per-model `model.cfr`, `model.cfr.<n>.data` (JSON instances), `stdout.txt`, `stderr.txt`, `exit.txt` |
 
 Tarball SHA-256: `a5a8241d6920a6d07577a53837c64c8a4341fa4600fbbf9b8fb1f88c08c18e87`
-Totals: 16 models, 1801 instance files (13 models enumerate cleanly at scope 2; 3 models exit nonzero, captured as-is).
+Totals: 16 models, 1801 instance files (13 models enumerate cleanly at scope 2; 3 models — `i220`, `i243`, `waitingLine` — exit nonzero, captured as-is: all three hit the pre-existing upstream `JSONGenerator` limitation "addValue … does not accept StringValues", preserved verbatim by the aeson port).
 
 ## Regeneration
 
