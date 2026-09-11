@@ -25,10 +25,34 @@ jobs:
         with:
           path: claferIG
 
+      # A claferIG feature branch may depend on in-flight sibling changes
+      # (stack builds '../clafer' from source).  Companion branches follow
+      # the documented convention (Sigil-Logic/clafer#2): claferIG branch
+      # 'feature/clafer-N-desc' pairs with clafer branch 'feature/N-desc'.
+      # Build against that clafer branch when it exists, falling back to the
+      # identically-named branch, then to master.
+      - name: Resolve sibling clafer ref (companion branch or master)
+        id: sibling
+        run: |
+          REF=master
+          HEAD_REF="${GITHUB_HEAD_REF:-}"
+          if [ -n "$HEAD_REF" ]; then
+            CANDIDATE="${HEAD_REF/#feature\/clafer-/feature/}"
+            for TRY in "$CANDIDATE" "$HEAD_REF"; do
+              if git ls-remote --exit-code --heads https://github.com/Sigil-Logic/clafer.git "$TRY" >/dev/null 2>&1; then
+                REF="$TRY"
+                break
+              fi
+            done
+          fi
+          echo "Sibling clafer ref: $REF"
+          echo "ref=$REF" >> "$GITHUB_OUTPUT"
+
       - name: Check out sibling clafer (stack package '../clafer')
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: Sigil-Logic/clafer
+          ref: ${{ steps.sibling.outputs.ref }}
           path: clafer
 
       - name: Set up Java (x86_64 Temurin)
