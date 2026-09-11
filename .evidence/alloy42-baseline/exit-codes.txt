@@ -1,0 +1,16 @@
+a2b3c4: exit=0 instances=1
+BobsTeam: exit=0 instances=0
+elevator: exit=0 instances=3
+i220: exit=1 instances=1
+i243: exit=1 instances=1
+i31_bitwidth: exit=0 instances=1
+i68-children-of-references-simpler: exit=0 instances=1
+i68-children-of-references: exit=0 instances=4
+i77-too many instances generated: exit=0 instances=1
+i83_individual-scope-should-never-be-smaller-than-the-global-scope: exit=0 instances=6
+inconsistent: exit=0 instances=0
+LTS: exit=0 instances=1
+PersonFingers: exit=0 instances=1
+subclaferCardinality: exit=0 instances=1
+TeamLeaderMemberContractor: exit=0 instances=1778
+waitingLine: exit=1 instances=1
