@@ -19,23 +19,24 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.
 -}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Language.Clafer.IG.JSONGenerator (generateJSON) where
 
 import Language.Clafer.Common
 import Language.Clafer.Intermediate.Intclafer
 import qualified Language.Clafer.IG.ClaferModel as M
+import qualified Data.Aeson.Encoding as AE
 import Data.Maybe (fromJust)
-import Data.Json.Builder
 import Data.String.Conversions
 import Prelude hiding (id)
 
 -- | Generate a representation of the instance in JSON format
 generateJSON :: UIDIClaferMap -> M.ClaferModel                  -> String
 generateJSON    uidIClaferMap'   (M.ClaferModel topLevelClafers) =
-    convertString $ toJsonBS $ constructElements $ map (printClafer uidIClaferMap') topLevelClafers
+    convertString $ AE.encodingToLazyByteString $ AE.pairs $ constructElements $ map (printClafer uidIClaferMap') topLevelClafers
 
-printClafer :: UIDIClaferMap -> M.Clafer                           -> Object
+printClafer :: UIDIClaferMap -> M.Clafer                           -> AE.Series
 printClafer    uidIClaferMap'      (M.Clafer id value children) =
     map (printClafer uidIClaferMap') children `addElements` completeClaferObject
     where
@@ -49,7 +50,7 @@ printClafer    uidIClaferMap'      (M.Clafer id value children) =
         (Just (_, cardMax)) = _card iclafer
         basicClaferObject = makeBasicClaferObject ident' uid' super' reference' cardMin cardMax
 
-        addValue :: Maybe M.Value         -> Object -> Object
+        addValue :: Maybe M.Value         -> AE.Series -> AE.Series
         addValue    Nothing                  object = object
         addValue    (Just (M.IntValue i))    object = addIntValue i object
         addValue    (Just (M.AliasValue a))  object = addStringValue (M.i_name a) object
@@ -60,34 +61,34 @@ printClafer    uidIClaferMap'      (M.Clafer id value children) =
         removeOrdinal :: String -> String
         removeOrdinal = takeWhile (/= '$')
 
-makeBasicClaferObject :: String -> String -> [String] -> [String] -> Integer -> Integer -> Object
+makeBasicClaferObject :: String -> String -> [String] -> [String] -> Integer -> Integer -> AE.Series
 makeBasicClaferObject    ident'    uid'      super'      reference'   cardMin    cardMax  =
-    mconcat [ row "ident" ident',
-              row "uid" uid',
+    mconcat [ AE.pair "ident" $ AE.string ident',
+              AE.pair "uid" $ AE.string uid',
               superRow,
               refRow,
-              row "cardMin" cardMin,
-              row "cardMax" cardMax ]
+              AE.pair "cardMin" $ AE.integer cardMin,
+              AE.pair "cardMax" $ AE.integer cardMax ]
     where
         superRow = case super' of
-            [s] -> row "super" s
+            [s] -> AE.pair "super" $ AE.string s
             _   -> mempty
         refRow = case reference' of
-            [r] -> row "reference" r
+            [r] -> AE.pair "reference" $ AE.string r
             _   -> mempty
 
-addIntValue :: Int -> Object      -> Object
+addIntValue :: Int -> AE.Series      -> AE.Series
 addIntValue    value  claferObject =
-    claferObject `mappend` row "value" value
+    claferObject `mappend` AE.pair "value" (AE.int value)
 
-addStringValue :: String -> Object      -> Object
+addStringValue :: String -> AE.Series      -> AE.Series
 addStringValue    value     claferObject =
-    claferObject `mappend` row "value" value
+    claferObject `mappend` AE.pair "value" (AE.string value)
 
-addElements :: [ Object ] -> Object      -> Object
+addElements :: [ AE.Series ] -> AE.Series      -> AE.Series
 addElements    elements'      claferObject =
     claferObject `mappend` constructElements elements'
 
-constructElements :: [ Object ] -> Object
+constructElements :: [ AE.Series ] -> AE.Series
 constructElements    elements'    =
-    row "elements" $ mconcat $ map element elements'
+    AE.pair "elements" $ AE.list AE.pairs elements'
