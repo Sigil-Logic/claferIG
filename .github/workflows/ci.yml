@@ -31,7 +31,7 @@ jobs:
       # 'feature/clafer-N-desc' pairs with clafer branch 'feature/N-desc'.
       # Build against that clafer branch when it exists, falling back to the
       # identically-named branch, then to master.
-      - name: Resolve sibling clafer ref (companion branch or master)
+      - name: Resolve sibling clafer repository ref (companion branch or master)
         id: sibling
         run: |
           REF=master
