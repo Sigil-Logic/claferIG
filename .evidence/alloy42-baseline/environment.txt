@@ -1,0 +1,7 @@
+date-utc: 2026-09-11T02:37:36Z
+claferIG: ClaferIG 0.5.1
+java: openjdk version "17.0.20.1" 2026-08-18
+arch: x86_64  os: Linux
+invocation: claferIG --all=2 --json <model>.cfr  (timeout 120s per model)
+corpus: test/positive/*.cfr
+commit: 22d3115ba90f8ffe2e14f1f5b965881282fcdcf2

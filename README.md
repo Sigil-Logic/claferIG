@@ -1,3 +1,5 @@
+[![CI](https://github.com/Sigil-Logic/claferIG/actions/workflows/ci.yml/badge.svg)](https://github.com/Sigil-Logic/claferIG/actions/workflows/ci.yml)
+
 # Clafer Instance Generator
 
 ##### v0.5.1
@@ -7,6 +9,10 @@
 **Clafer instance generator** (ClaferIG) is an interactive tool that generates instances and counter examples of concrete clafers in a Clafer model. If the concrete clafers do not have contradicting constraints, the generator produces valid instance data. Otherwise, the generator produces an unsatisfiable core which included all contradicting constraints and generates a counter example by removing one constraint from the core. The generator can potentially produce many instances if the concrete clafers are not fully specialized. The generator produces different instances on-demand. With these capabilities, the instance generator can be used for debugging models: checking the consistency of the model and detecting under- and overconstraining of the model. The instance generator can also be used programmatically via API (the command line and interactive session interfaces only use the API).
 
 For more information, see [technical report](http://gsd.uwaterloo.ca/node/462).
+
+## Continuous Integration
+
+The Sigil-Logic fork builds and tests on x86_64 Linux via GitHub Actions ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)): `make lib` (MiniSat native extraction), `make build`, and the full `make test` suite — including the MiniSat-dependent `strMapCheck`, which cannot run on Apple Silicon (Alloy 4.2 ships no arm64 natives; see [Sigil-Logic/clafer#5](https://github.com/Sigil-Logic/clafer/issues/5)).  The workflow also captures the **Alloy 4.2 behavioral baseline** ([`scripts/capture-alloy42-baseline.sh`](scripts/capture-alloy42-baseline.sh)) that feeds the Alloy 6.2 modernization re-baselining.  Introduced under [Sigil-Logic/clafer#7](https://github.com/Sigil-Logic/clafer/issues/7).
 
 ## Contributors
 
