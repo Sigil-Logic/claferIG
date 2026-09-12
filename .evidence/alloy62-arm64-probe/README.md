@@ -34,7 +34,7 @@ java -jar org.alloytools.alloy.dist-6.2.0.jar exec -f -s minisat.prover sat-mode
 java -jar org.alloytools.alloy.dist-6.2.0.jar exec -f -s minisat.prover unsat-model.als
 ```
 
-This probe is a one-off frozen artifact captured on 2026-09-11 during the [clafer#5](https://github.com/Sigil-Logic/clafer/issues/5) audit; the full audit and migration plan live in the sibling repository at [`doc/alloy-6.2-migration.md`](https://github.com/Sigil-Logic/clafer/blob/feature/5-alloy-6.2/doc/alloy-6.2-migration.md).
+This probe is a one-off frozen artifact captured on 2026-09-11 during the [clafer#5](https://github.com/Sigil-Logic/clafer/issues/5) audit; the full audit and migration plan live in the sibling repository at [`doc/alloy-6.2-migration.md`](https://github.com/Sigil-Logic/clafer/blob/master/doc/alloy-6.2-migration.md).
 
 ---
 
