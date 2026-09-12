@@ -38,6 +38,7 @@ build: alloyIG.jar $(ALLOY_JAR)
 # carrying the unreleased upstream UNSAT-core fix (AlloyTools issue #311);
 # see the header of src/org/alloytools/.../MiniSatProver.java.
 alloyIG.jar: $(ALLOY_JAR) src/manifest src/org/clafer/ig/AlloyIG.java src/org/clafer/ig/Util.java src/org/clafer/ig/AlloyIGException.java src/org/alloytools/solvers/natv/minisatprover/MiniSatProver.java
+	$(MAKE) verify-alloy
 	mkdir -p dist/javabuild
 	javac --release 17 -cp "$(ALLOY_JAR)" -d dist/javabuild src/org/clafer/ig/AlloyIG.java src/org/clafer/ig/Util.java src/org/clafer/ig/AlloyIGException.java src/org/alloytools/solvers/natv/minisatprover/MiniSatProver.java
 	jar cfm alloyIG.jar src/manifest -C dist/javabuild org/clafer/ig/ -C dist/javabuild org/alloytools/
