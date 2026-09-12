@@ -15,7 +15,7 @@ ALLOY_SHA256 := 6037cbeee0e8423c1c468447ed10f5fcf2f2743a2ffc39cb1c81f2905c0fdb9d
 all: alloyIG.jar build
 
 # Calling `make install to=<target directory>` should only install
-install:
+install: build
 	mkdir -p $(to)
 	cp -f $(ALLOY_JAR) $(to)
 	cp -f alloyIG.jar $(to)
@@ -25,7 +25,8 @@ install:
 	cp `stack path --local-install-root`/bin/claferIG$(EXE) $(to)
 
 # Build takes less time. For ease of development.
-build: alloyIG.jar
+build: alloyIG.jar $(ALLOY_JAR)
+	$(MAKE) verify-alloy
 	stack build
 	cp alloyIG.jar `stack path --local-install-root`/bin/
 	cp $(ALLOY_JAR) `stack path --local-install-root`/bin/
@@ -43,7 +44,8 @@ alloyIG.jar: $(ALLOY_JAR) src/manifest src/org/clafer/ig/AlloyIG.java src/org/cl
 
 .PHONY : test
 
-test:
+test: alloyIG.jar $(ALLOY_JAR)
+	$(MAKE) verify-alloy
 	stack test --no-run-tests
 	cp alloyIG.jar `stack path --dist-dir`/build/test-suite/
 	cp $(ALLOY_JAR) `stack path --dist-dir`/build/test-suite/
@@ -64,11 +66,24 @@ codex:
 	codex update
 	mv codex.tags tags
 
+# Download to a temporary file, verify, then atomically rename, so an
+# interrupted or corrupted download never becomes an "up to date" target.
 $(ALLOY_JAR):
 	@echo "Fetching Alloy $(ALLOY_VERSION) from Maven Central..."
-	curl -fsSL -o "$(ALLOY_JAR)" "$(ALLOY_URL)"
+	curl -fsSL -o "$(ALLOY_JAR).tmp" "$(ALLOY_URL)"
+	@if command -v shasum > /dev/null 2>&1; then \
+		echo "$(ALLOY_SHA256)  $(ALLOY_JAR).tmp" | shasum -a 256 -c - ; \
+	else \
+		echo "$(ALLOY_SHA256)  $(ALLOY_JAR).tmp" | sha256sum -c - ; \
+	fi || { echo "[ERROR] $(ALLOY_JAR) checksum mismatch"; rm -f "$(ALLOY_JAR).tmp"; false; }
+	mv "$(ALLOY_JAR).tmp" "$(ALLOY_JAR)"
+
+# Re-verify the jar on every build/test entry, so a pre-existing corrupt
+# file is caught even though make considers the target up to date.
+.PHONY: verify-alloy
+verify-alloy:
 	@if command -v shasum > /dev/null 2>&1; then \
 		echo "$(ALLOY_SHA256)  $(ALLOY_JAR)" | shasum -a 256 -c - ; \
 	else \
 		echo "$(ALLOY_SHA256)  $(ALLOY_JAR)" | sha256sum -c - ; \
-	fi || { echo "[ERROR] $(ALLOY_JAR) checksum mismatch"; rm -f "$(ALLOY_JAR)"; false; }
+	fi || { echo "[ERROR] $(ALLOY_JAR) failed verification; delete it and re-run make"; false; }

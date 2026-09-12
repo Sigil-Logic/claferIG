@@ -103,6 +103,27 @@ case_strMapCheck = do
             valueCheck (Just (IntValue _)) = False
             valueCheck (Just (StringValue _)) = True
 
+-- End-to-end regression for the UNSAT-core path (Sigil-Logic/clafer#5):
+-- the Alloy 6.2.0 release ships with cores silently broken (AlloyTools#311),
+-- repaired here by the MiniSatProver classpath shadow in alloyIG.jar.  This
+-- asserts a nonempty minimized core AND a near-miss counterexample on an
+-- inconsistent model, exercising unsatCore, removeConstraint, and the
+-- save/restore-state machinery.  It also guards against silent SAT4J
+-- fallback on prover-supported platforms: without the native prover the
+-- core comes back empty and this test fails.
+case_unsatCoreCheck :: Assertion
+case_unsatCoreCheck = do
+        solution <- runClaferIGT (defaultIGArgs "test/positive/inconsistent.cfr") $ do
+            setGlobalScope 1
+            solve
+            next
+        case solution of
+            Right (UnsatCore core' counterexample') -> do
+                not (null core') @? "UNSAT core is empty (native prover missing or proof extraction broken?)"
+                isJust counterexample' @? "no near-miss counterexample was produced from the core"
+            Right _  -> assertFailure "expected an UnsatCore solution for the inconsistent model"
+            Left err -> assertFailure $ "claferIG failed: " ++ show err
+
 case_pickLargerScope :: Assertion
 case_pickLargerScope = do
     let

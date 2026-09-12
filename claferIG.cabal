@@ -17,6 +17,11 @@ data-files:             README.md
                       , CHANGES.md
                       , Makefile
                       , stack.yaml
+                      , src/manifest
+                      , src/org/clafer/ig/AlloyIG.java
+                      , src/org/clafer/ig/AlloyIGException.java
+                      , src/org/clafer/ig/Util.java
+                      , src/org/alloytools/solvers/natv/minisatprover/MiniSatProver.java
 source-repository head
     type:               git
     location:           git://github.com/gsdlab/claferIG.git
@@ -42,6 +47,7 @@ executable claferIG
                       , clafer == 0.5.1
                       , claferIG == 0.5.1
     other-modules:      Paths_claferIG
+    autogen-modules:    Paths_claferIG
     Hs-Source-Dirs:     src-cmd
     ghc-options:        -Wall -fno-warn-orphans
 
@@ -73,6 +79,7 @@ library
                       , Language.Clafer.IG.Solution
                       , Language.Clafer.IG.Sugarer
     other-modules:      Paths_claferIG
+    autogen-modules:    Paths_claferIG
 Test-Suite test-suite
     type:               exitcode-stdio-1.0
     default-language:   Haskell2010
@@ -95,4 +102,5 @@ Test-Suite test-suite
                       , clafer == 0.5.1
                       , claferIG == 0.5.1
     other-modules:      Paths_claferIG
+    autogen-modules:    Paths_claferIG
     ghc-options:        -Wall -fno-warn-orphans
