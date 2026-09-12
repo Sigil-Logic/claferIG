@@ -7,7 +7,6 @@ tools
 *.lkshs
 *.lkshw
 *.jar
-!alloyIG.jar
 *.sublime-project
 *.sublime-workspace
 .cabal-sandbox
@@ -15,4 +14,3 @@ tools
 stack.yaml.lock
 cabal.sandbox.config
 tags
-lib/amd64-linux/
