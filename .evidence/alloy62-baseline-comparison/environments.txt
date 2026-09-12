@@ -1,0 +1,30 @@
+== frozen Alloy 4.2 reference (.evidence/alloy42-baseline, claferIG master 28a40bc era)
+date-utc: 2026-09-11T02:37:36Z
+claferIG: ClaferIG 0.5.1
+java: openjdk version "17.0.20.1" 2026-08-18
+arch: x86_64  os: Linux
+invocation: claferIG --all=2 --json <model>.cfr  (timeout 120s per model)
+corpus: test/positive/*.cfr
+commit: 22d3115ba90f8ffe2e14f1f5b965881282fcdcf2
+
+== new Alloy 6.2 capture (x86_64 CI)
+date-utc: 2026-09-12T19:17:22Z
+claferIG: ClaferIG 0.5.1
+java: openjdk version "17.0.20.1" 2026-08-18
+arch: x86_64  os: Linux
+invocation: claferIG --all=2 --json <model>.cfr  (timeout 120s per model)
+corpus: test/positive/*.cfr (16 models)
+claferIG-commit: f38f51f47b14652cbfe7d2ed689174543fa2c8b1
+clafer-sibling-commit: d48dffc159b7b4b112532899ef2183bd0cf85d24
+github-sha: f38f51f47b14652cbfe7d2ed689174543fa2c8b1 (on pull_request events this is the synthetic merge commit)
+github-run: 34713586523
+
+== new Alloy 6.2 capture (local aarch64 macOS)
+date-utc: 2026-09-12T19:13:07Z
+claferIG: ClaferIG 0.5.1
+java: openjdk version "21.0.2" 2024-01-16
+arch: arm64  os: Darwin
+invocation: claferIG --all=2 --json <model>.cfr  (timeout 120s per model)
+corpus: test/positive/*.cfr (16 models)
+claferIG-commit: 0555d7998bba16885f2b20b5d47f8fcfda70c51d
+clafer-sibling-commit: d48dffc159b7b4b112532899ef2183bd0cf85d24
