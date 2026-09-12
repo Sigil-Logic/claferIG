@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
-# Capture the Alloy 4.2 behavioral baseline of claferIG instance generation
-# (Sigil-Logic/clafer#7); feeds re-baselining for the Alloy 6.2 modernization
-# (Sigil-Logic/clafer#5).
+# Capture the behavioral baseline of claferIG instance generation against
+# whatever Alloy version the tree builds with (introduced under
+# Sigil-Logic/clafer#7 as capture-alloy42-baseline.sh to freeze the Alloy 4.2
+# reference, .evidence/alloy42-baseline/; renamed and reused under
+# Sigil-Logic/clafer#5 to capture Alloy 6.2 behavior for comparison).
 #
-# Usage: capture-alloy42-baseline.sh [SCOPE] [OUTDIR]
+# Usage: capture-alloy-baseline.sh [SCOPE] [OUTDIR]
 #
 # Runs `claferIG --all=<SCOPE> --json <model>.cfr` over test/positive/*.cfr,
 # capturing per model: the produced instance files (model.cfr.<n>.data, JSON

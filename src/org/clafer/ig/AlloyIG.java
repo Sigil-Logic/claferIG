@@ -27,20 +27,21 @@ import edu.mit.csail.sdg.alloy4.ErrorSyntax;
 import edu.mit.csail.sdg.alloy4.ErrorWarning;
 import edu.mit.csail.sdg.alloy4.Pos;
 import edu.mit.csail.sdg.alloy4.SafeList;
-import edu.mit.csail.sdg.alloy4compiler.ast.Command;
-import edu.mit.csail.sdg.alloy4compiler.ast.CommandScope;
-import edu.mit.csail.sdg.alloy4compiler.ast.Sig;
-import edu.mit.csail.sdg.alloy4compiler.parser.AlloyCompiler;
-import edu.mit.csail.sdg.alloy4compiler.parser.CompModule;
-import edu.mit.csail.sdg.alloy4compiler.translator.A4Options;
-import edu.mit.csail.sdg.alloy4compiler.translator.A4Solution;
-import edu.mit.csail.sdg.alloy4compiler.translator.TranslateAlloyToKodkod;
+import edu.mit.csail.sdg.ast.Command;
+import edu.mit.csail.sdg.ast.CommandScope;
+import edu.mit.csail.sdg.ast.Func;
+import edu.mit.csail.sdg.ast.Sig;
+import edu.mit.csail.sdg.parser.CompModule;
+import edu.mit.csail.sdg.parser.CompUtil;
+import edu.mit.csail.sdg.translator.A4Options;
+import edu.mit.csail.sdg.translator.A4Solution;
+import edu.mit.csail.sdg.translator.TranslateAlloyToKodkod;
+import kodkod.engine.satlab.SATFactory;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 import static org.clafer.ig.Util.*;
 
@@ -111,8 +112,13 @@ public final class AlloyIG {
             this.x2 = x2;
         }
 
-        public Pos getPos() {
-            return new Pos("", x, y, x2, y2);
+        public Pos getPos(String filename) {
+            // Pos.equals compares filenames.  Alloy 6's
+            // parseEverything_fromString parses via a temporary file, so AST
+            // positions carry that file's name; a constraint position must
+            // carry the same name to match (the 4.2-era in-memory parse used
+            // "" here).
+            return new Pos(filename, x, y, x2, y2);
         }
     }
 
@@ -226,34 +232,30 @@ public final class AlloyIG {
         throw new AlloyIGException("Unknown op " + op);
     }
 
-    private static CommandScope setCommandScopeSize(int scopeSize, CommandScope cs) throws ErrorSyntax {
-        return new CommandScope(
-                cs.pos, cs.sig, cs.isExact, scopeSize, scopeSize, cs.increment);
+    private static Command setGlobalScope(int scopeSize, Command c) {
+        return new Command(c.pos, c.nameExpr, c.label, c.check, scopeSize, c.bitwidth, c.maxseq,
+                c.minprefix, c.maxprefix, c.expects, c.scope, c.additionalExactScopes,
+                c.commandKeyword, c.formula, c.parent);
     }
 
-    private static List<CommandScope> setScopeSize(Sig sig, int scopeSize, List<CommandScope> scope) throws ErrorSyntax {
-        List<CommandScope> newScope = new ArrayList<CommandScope>();
+    private static Command setBitwidth(int bitwidth, Command c) {
+        return new Command(c.pos, c.nameExpr, c.label, c.check, c.overall, bitwidth, c.maxseq,
+                c.minprefix, c.maxprefix, c.expects, c.scope, c.additionalExactScopes,
+                c.commandKeyword, c.formula, c.parent);
+    }
 
-        boolean found = false;
-        for (CommandScope cs : scope) {
-            if (sig.equals(cs.sig)) {
-                found = true;
-                newScope.add(setCommandScopeSize(scopeSize, cs));
-            } else {
-                newScope.add(cs);
-            }
+    private static Command setScopeSize(Sig sig, int scopeSize, Command c) throws ErrorSyntax {
+        CommandScope existing = c.getScope(sig);
+        if (existing == null) {
+            return c.change(sig, false, scopeSize);
         }
-
-        if (!found) {
-            newScope.add(new CommandScope(sig, false, scopeSize));
-        }
-
-        return newScope;
+        return c.change(sig, existing.isExact, scopeSize, scopeSize, existing.increment);
     }
 
     private static String toXml(A4Solution ans) throws Err, IOException {
         StringWriter xml = new StringWriter();
-        ans.writeXML(new PrintWriter(xml), null, null);
+        // Alloy 6's A4SolutionWriter no longer accepts a null macros iterable.
+        ans.writeXML(new PrintWriter(xml), new ArrayList<Func>(0), null);
         return xml.toString();
     }
 
@@ -269,11 +271,15 @@ public final class AlloyIG {
     }
 
     public static void main(String[] args) throws IOException, Err {
-        try {
-            System.loadLibrary("minisatprover");
-        } catch (UnsatisfiedLinkError e) {
-            System.loadLibrary("minisatproverx1");
-        }
+        // Quiet the slf4j-simple binding bundled with Alloy: kodkod logs INFO
+        // progress to stderr, which would leak into claferIG's terminal.
+        // (Both property spellings, for old and new slf4j-simple versions.)
+        System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "warn");
+        System.setProperty("org.slf4j.simplelogger.defaultlog", "warn");
+        // With proof logging, prover peers are released by the finalizer (the
+        // proof outlives the solve); NativeSolver logs each such release at
+        // WARN, which would spam claferIG's console on every unsat core.
+        System.setProperty("org.slf4j.simpleLogger.log.kodkod.engine.satlab.NativeSolver", "error");
         try {
             run(args);
         } catch (EOFException e) {
@@ -295,6 +301,7 @@ public final class AlloyIG {
         CompModule world = null;
         SafeList<Sig> sigs = null;
         Command command = null;
+        String modelFilename = "";
 
         A4Solution ans = null;
         Operation operation = null;
@@ -302,7 +309,17 @@ public final class AlloyIG {
         A4Options options = new A4Options();
         // Use fastest
         options.coreMinimization = 2;
-        options.solver = A4Options.SatSolver.MiniSatProverJNI;
+        SATFactory miniSatProver = SATFactory.find("minisat.prover")
+                .filter(SATFactory::isPresent).orElse(null);
+        if (miniSatProver != null) {
+            options.solver = miniSatProver;
+        } else {
+            // Without the prover the minimized() callback never fires, so
+            // unsatCore degrades gracefully to an empty core.
+            System.err.println("AlloyIG: native MiniSat prover unavailable on this platform;"
+                    + " falling back to SAT4J (UNSAT cores unavailable).");
+            options.solver = SATFactory.DEFAULT;
+        }
 
         State<StateExtra> state = null;
 
@@ -312,9 +329,10 @@ public final class AlloyIG {
             if (operation instanceof LoadOperation) {
                 LoadOperation load = (LoadOperation) operation;
 
-                world = AlloyCompiler.parse(rep, load.getModel());
+                world = CompUtil.parseEverything_fromString(rep, load.getModel());
                 sigs = world.getAllSigs();
                 command = world.getAllCommands().get(0);
+                modelFilename = command.pos.filename;
 
                 // Send back all the sigs
                 writeMessage(Integer.toString(sigs.size()));
@@ -355,18 +373,14 @@ public final class AlloyIG {
                 SetGlobalScopeOperation increaseScope = (SetGlobalScopeOperation) operation;
                 int scopeSize = increaseScope.getScopeSize();
 
-                Command c = command;
-                command = new Command(c.pos, c.label, c.check, scopeSize, c.bitwidth, c.maxseq, c.expects, c.scope, c.additionalExactScopes, c.formula, c.parent);
+                command = setGlobalScope(scopeSize, command);
             } else if (operation instanceof SetScopeOperation) {
                 SetScopeOperation increaseScope = (SetScopeOperation) operation;
                 String sigName = increaseScope.getSig();
                 int scopeSize = increaseScope.getScopeSize();
 
                 Sig sig = findSig(sigName, sigs);
-                List<CommandScope> scope = setScopeSize(sig, scopeSize, command.scope);
-
-                Command c = command;
-                command = new Command(c.pos, c.label, c.check, c.overall, c.bitwidth, c.maxseq, c.expects, scope, c.additionalExactScopes, c.formula, c.parent);
+                command = setScopeSize(sig, scopeSize, command);
             } else if (operation instanceof SaveStateOperation) {
                 state = saveState(sigs, new StateExtra(rep.minimizedBefore, rep.minimizedAfter, ans, command));
             } else if (operation instanceof RestoreStateOperation) {
@@ -377,7 +391,7 @@ public final class AlloyIG {
                 command = extra.getCommand();
             } else if (operation instanceof RemoveConstraintOperation) {
                 RemoveConstraintOperation removeConstraint = (RemoveConstraintOperation) operation;
-                Pos constraint = removeConstraint.getPos();
+                Pos constraint = removeConstraint.getPos(modelFilename);
 
                 Command newCommand = removeGlobalConstraint(constraint, command);
                 if (newCommand == null) {
@@ -411,9 +425,8 @@ public final class AlloyIG {
                 SetUnsatCoreMinimizationOperation setUnsatCoreMinimization = (SetUnsatCoreMinimizationOperation) operation;
                 options.coreMinimization = setUnsatCoreMinimization.getMinimizationLevel();
             } else if (operation instanceof SetBitwidthOperation) {
-                SetBitwidthOperation setBitwidth = (SetBitwidthOperation) operation;
-                Command c = command;
-                command = new Command(c.pos, c.label, c.check, c.overall, setBitwidth.getBitwidth(), c.maxseq, c.expects, c.scope, c.additionalExactScopes, c.formula, c.parent);
+                SetBitwidthOperation setBitwidthOp = (SetBitwidthOperation) operation;
+                command = setBitwidth(setBitwidthOp.getBitwidth(), command);
             } else if (operation instanceof QuitOperation) {
                 break;
             } else {

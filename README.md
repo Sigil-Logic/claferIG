@@ -12,7 +12,7 @@ For more information, see [technical report](http://gsd.uwaterloo.ca/node/462).
 
 ## Continuous Integration
 
-The Sigil-Logic fork builds and tests on x86_64 Linux via GitHub Actions ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)): `make lib` (MiniSat native extraction), `make build`, and the full `make test` suite — including the MiniSat-dependent `strMapCheck`, which cannot run on Apple Silicon (Alloy 4.2 ships no arm64 natives; see [Sigil-Logic/clafer#5](https://github.com/Sigil-Logic/clafer/issues/5)).  The workflow also captures the **Alloy 4.2 behavioral baseline** ([`scripts/capture-alloy42-baseline.sh`](scripts/capture-alloy42-baseline.sh)) that feeds the Alloy 6.2 modernization re-baselining.  Introduced under [Sigil-Logic/clafer#7](https://github.com/Sigil-Logic/clafer/issues/7).
+The Sigil-Logic fork builds and tests on x86_64 Linux and arm64 macOS via GitHub Actions ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)): `make build` and the full `make test` suite on both platforms — Apple Silicon is supported since the Alloy 6.2 port ([Sigil-Logic/clafer#5](https://github.com/Sigil-Logic/clafer/issues/5)); Alloy 6.2 bundles `darwin/arm64` solver natives, including the MiniSat prover.  The Linux job also captures the **behavioral baseline** ([`scripts/capture-alloy-baseline.sh`](scripts/capture-alloy-baseline.sh)); the frozen Alloy 4.2 reference baseline lives in [`.evidence/alloy42-baseline/`](.evidence/alloy42-baseline).  CI introduced under [Sigil-Logic/clafer#7](https://github.com/Sigil-Logic/clafer/issues/7).
 
 ## Contributors
 
@@ -29,9 +29,8 @@ Clafer can be installed from a binary distribution (preferred), from Hackage, an
 Regardless of the installation method, the following are required:
 
 * [Clafer](https://github.com/gsdlab/clafer) v0.5.1
-* [Java Platform (JDK)](http://www.oracle.com/technetwork/java/javase/downloads/index.html) v8+, 64bit
-  * On Windows, Java must be 32bit because of Alloy, 64bit otherwise
-* [Alloy4.2](http://alloytools.org/download)
+* [Java Platform (JDK)](https://adoptium.net/) v17+
+* [Alloy](https://github.com/AlloyTools/org.alloytools.alloy) 6.2.0 — fetched automatically from Maven Central by `make` (`org.alloytools:org.alloytools.alloy.dist:6.2.0`, SHA-256-verified); the dist jar bundles the per-platform native solvers (Linux amd64, macOS amd64/arm64, Windows amd64), so no separate solver libraries are needed
 
 ### Installation from binaries
 
@@ -53,15 +52,8 @@ Stack is the only requirement: no other Haskell tooling needs to be installed be
 2. Execute
   * `stack install claferIG`
   * ``` cd `stack --local-bin-path` ```
-  * `wget http://alloytools.org/download/alloy4.2_2015-02-22.jar`
-  * `mv alloy4.2_2015-02-22.jar alloy4.2.jar`
-  * `wget https://github.com/gsdlab/claferIG/raw/master/alloyIG.jar`
-  * `mkdir lib`
-  * `cd lib`
-  * Depending on your OS:
-    * for Win, `stack exec wget --  https://github.com/gsdlab/claferIG/raw/master/lib/libminisatprover.dll`
-    * for Linux, `wget https://github.com/gsdlab/claferIG/raw/master/lib/libminisatprover.so`
-    * for Mac, `wget https://github.com/gsdlab/claferIG/raw/master/lib/libminisatprover.dylib`
+  * download Alloy from Maven Central: `curl -fsSLO https://repo1.maven.org/maven2/org/alloytools/org.alloytools.alloy.dist/6.2.0/org.alloytools.alloy.dist-6.2.0.jar`
+  * build `alloyIG.jar` from a claferIG source checkout (`make alloyIG.jar`) and copy it next to the Alloy jar (since the Alloy 6.2 port, `alloyIG.jar` is built from source, not distributed)
 
 #### Installation using `cabal-install`
 
@@ -74,12 +66,13 @@ Dependencies
 2. `cabal update`
 3. `cabal install claferIG`
 4. `cd <cabal's lib or share folder>`  (`C:\Users\<user>\AppData\Roaming\cabal\x86_64-windows-ghc-8.4.4\claferIG-0.5.1` on Windows or `.cabal/share/x86_64-linux-ghc-8.4.4/claferIG-0.5.1/` on Linux)
-5. to automatically download alloy4.2.jar
-  * execute `make alloy4.2.jar`
+5. to automatically download the Alloy jar from Maven Central
+  * execute `make org.alloytools.alloy.dist-6.2.0.jar`
+6. to build the Alloy interface jar
+  * execute `make alloyIG.jar`
 7. copy the following into the Cabal's `bin` folder
   * the file `alloyIG.jar`
-  * the file `alloy4.2.jar`
-  * the folder `lib`
+  * the file `org.alloytools.alloy.dist-6.2.0.jar`
 
 ### Installation from the source code
 
@@ -329,19 +322,13 @@ Here, `C1` and `C3` are satisfied but `C2` is not. To resolve the conflict and a
 ## Troubleshooting
 
 
-If you get an error:
+If you see on stderr:
 
 ```
-Exception in thread "main" java.lang.UnsatisfiedLinkError: no minisatproverx1 in java.library.path
- at java.lang.ClassLoader.loadLibrary(Unknown Source)
- at java.lang.Runtime.loadLibrary0(Unknown Source)
- at java.lang.System.loadLibrary(Unknown Source)
- at org.clafer.ig.AlloyIG.main(AlloyIG.java:275)
+AlloyIG: native MiniSat prover unavailable on this platform; falling back to SAT4J (UNSAT cores unavailable).
 ```
 
-it means that you have a 64bit Java on Windows instead of the required 32bit one.
-On Windows, Alloy only supports Minisat with UnSAT core on 32bit Java.
-There's nothing we can do.
+it means Alloy 6.2 ships no native MiniSat prover for your OS/architecture (see `java -jar org.alloytools.alloy.dist-6.2.0.jar natives`).  Instance generation still works on the pure-Java SAT4J solver, but the UNSAT-core-based features (`unsat core`, counter examples from core removal) are degraded.
 
 ## How it works
 

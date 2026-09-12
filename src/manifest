@@ -1,3 +1,2 @@
 Main-Class: org.clafer.ig.AlloyIG
-Class-Path: alloy4.2.jar
-
+Class-Path: org.alloytools.alloy.dist-6.2.0.jar
