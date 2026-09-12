@@ -1,0 +1,101 @@
+┌──────────────────┬────────────────────────────────────────────────────────────┬───────────┬───────────┬───────────────────┬──────────────────────┬──────────────────────┬───────────────┐
+│id                │description                                                 │type       │attributes │linux/amd64        │darwin/arm64**        │darwin/amd64          │windows/amd64  │
+├──────────────────┼────────────────────────────────────────────────────────────┼───────────┼───────────┼───────────────────┼──────────────────────┼──────────────────────┼───────────────┤
+│CNF               │CNF stands for Conjunctive Normal Form. It is specified by  │transformer│           │                   │                      │                      │               │
+│                  │DIMACS. This is a standardized way of representing Boolean  │           │           │                   │                      │                      │               │
+│                  │algebra expressions for processing by SAT solvers.          │           │           │                   │                      │                      │               │
+├──────────────────┼────────────────────────────────────────────────────────────┼───────────┼───────────┼───────────────────┼──────────────────────┼──────────────────────┼───────────────┤
+│KK                │KK is the KodKod debug output format                        │transformer│           │                   │                      │                      │               │
+├──────────────────┼────────────────────────────────────────────────────────────┼───────────┼───────────┼───────────────────┼──────────────────────┼──────────────────────┼───────────────┤
+│electrod.elo      │outputs the elo file generated for electrod                 │transformer│           │electrod           │electrod              │electrod              │electrod.exe   │
+├──────────────────┼────────────────────────────────────────────────────────────┼───────────┼───────────┼───────────────────┼──────────────────────┼──────────────────────┼───────────────┤
+│electrod.nusmv    │`nuSMV` is a reimplementation and extension of `SMV`, the   │external   │           │electrod           │electrod              │electrod              │electrod.exe   │
+│                  │original Symbolic Model Verifier developed at Carnegie      │           │           │NuSMV [missing]    │NuSMV [missing]       │NuSMV [missing]       │NuSMV [missing]│
+│                  │Mellon University. It is a software tool for the formal     │           │           │                   │                      │                      │               │
+│                  │verification of finite state systems, which can be used to  │           │           │                   │                      │                      │               │
+│                  │check specifications of hardware and software systems.      │           │           │                   │                      │                      │               │
+│                  │`nuSMV` allows users to describe systems in a high-level    │           │           │                   │                      │                      │               │
+│                  │input language and to specify properties to be verified     │           │           │                   │                      │                      │               │
+│                  │using temporal logics such as CTL (Computation Tree Logic)  │           │           │                   │                      │                      │               │
+│                  │and LTL (Linear Temporal Logic). The tool uses symbolic     │           │           │                   │                      │                      │               │
+│                  │model checking techniques, including Binary Decision        │           │           │                   │                      │                      │               │
+│                  │Diagrams (BDDs), to efficiently verify complex systems      │           │           │                   │                      │                      │               │
+│                  │against the given specifications. It supports various       │           │           │                   │                      │                      │               │
+│                  │analysis modes, including model checking, interactive       │           │           │                   │                      │                      │               │
+│                  │simulation, and counterexample generation, facilitating the │           │           │                   │                      │                      │               │
+│                  │detection and diagnosis of design errors.                   │           │           │                   │                      │                      │               │
+├──────────────────┼────────────────────────────────────────────────────────────┼───────────┼───────────┼───────────────────┼──────────────────────┼──────────────────────┼───────────────┤
+│electrod.nuxmv    │nuXmv is a symbolic model checker for formal verification of│external   │           │electrod           │electrod              │electrod              │electrod.exe   │
+│                  │finite state and infinite state systems. It extends and     │           │           │nuXmv [missing]    │nuXmv [missing]       │nuXmv [missing]       │nuXmv [missing]│
+│                  │replaces the nuSMV tool, inheriting its features while      │           │           │                   │                      │                      │               │
+│                  │introducing new functionalities and improvements. nuXmv can │           │           │                   │                      │                      │               │
+│                  │analyze both hardware designs and software specifications,  │           │           │                   │                      │                      │               │
+│                  │supporting temporal logics like CTL (Computation Tree Logic)│           │           │                   │                      │                      │               │
+│                  │and LTL (Linear Temporal Logic) for specification of        │           │           │                   │                      │                      │               │
+│                  │properties. It employs advanced techniques such as SAT-based│           │           │                   │                      │                      │               │
+│                  │and BDD-based symbolic model checking, making it effective  │           │           │                   │                      │                      │               │
+│                  │for verifying complex systems.                              │           │           │                   │                      │                      │               │
+├──────────────────┼────────────────────────────────────────────────────────────┼───────────┼───────────┼───────────────────┼──────────────────────┼──────────────────────┼───────────────┤
+│glucose           │Glucose is an efficient and open-source SAT solver based on │jni        │incr       │libglucose.so      │libglucose.dylib      │libglucose.dylib      │glucose.dll    │
+│                  │the MiniSat solver. It was developed by Gilles Audemard and │           │           │                   │                      │                      │               │
+│                  │Laurent Simon.                                              │           │           │                   │                      │                      │               │
+│                  │The name "Glucose" comes from adding some "glue clauses" to │           │           │                   │                      │                      │               │
+│                  │the MiniSat, which refers to a specific kind of learned     │           │           │                   │                      │                      │               │
+│                  │clause (the ones that are considered important and are kept │           │           │                   │                      │                      │               │
+│                  │during the clause database reduction process). The use of   │           │           │                   │                      │                      │               │
+│                  │glue clauses has shown to be particularly effective for hard│           │           │                   │                      │                      │               │
+│                  │industrial SAT instances.                                   │           │           │                   │                      │                      │               │
+│                  │Glucose incorporates an approach called "Literal Block      │           │           │                   │                      │                      │               │
+│                  │Distance" (LBD) to measure the 'activity' of learned        │           │           │                   │                      │                      │               │
+│                  │clauses. The LBD measure helps in making decisions about    │           │           │                   │                      │                      │               │
+│                  │which clauses to keep when the memory becomes full. This    │           │           │                   │                      │                      │               │
+│                  │mechanism makes Glucose more efficient in dealing with large│           │           │                   │                      │                      │               │
+│                  │and complex problems.                                       │           │           │                   │                      │                      │               │
+├──────────────────┼────────────────────────────────────────────────────────────┼───────────┼───────────┼───────────────────┼──────────────────────┼──────────────────────┼───────────────┤
+│lingeling.parallel│Plingeling is a parallel SAT solver that's part of the      │external   │           │plingeling         │plingeling            │plingeling            │               │
+│                  │Lingeling family of SAT solvers developed by Armin Biere at │           │           │                   │                      │                      │               │
+│                  │Johannes Kepler University. SAT, or Boolean satisfiability, │           │           │                   │                      │                      │               │
+│                  │is the problem of determining if there exists an            │           │           │                   │                      │                      │               │
+│                  │interpretation that satisfies a given Boolean formula.      │           │           │                   │                      │                      │               │
+│                  │Plingeling is designed to make efficient use of multiple    │           │           │                   │                      │                      │               │
+│                  │processors or cores to solve SAT problems faster than a     │           │           │                   │                      │                      │               │
+│                  │single-threaded solver would be able to. It does this by    │           │           │                   │                      │                      │               │
+│                  │running several instances of the Lingeling solver in        │           │           │                   │                      │                      │               │
+│                  │parallel, each working on the same problem but with         │           │           │                   │                      │                      │               │
+│                  │different heuristics or random seed values.                 │           │           │                   │                      │                      │               │
+│                  │Plingeling also incorporates techniques to share learned    │           │           │                   │                      │                      │               │
+│                  │clauses between the different solver instances, which can   │           │           │                   │                      │                      │               │
+│                  │help to avoid duplicate work and accelerate the overall     │           │           │                   │                      │                      │               │
+│                  │solving process.                                            │           │           │                   │                      │                      │               │
+├──────────────────┼────────────────────────────────────────────────────────────┼───────────┼───────────┼───────────────────┼──────────────────────┼──────────────────────┼───────────────┤
+│minisat           │MiniSat is a minimalistic, open-source SAT solver that is   │jni        │incr       │libminisat.so      │libminisat.dylib      │libminisat.dylib      │minisat.dll    │
+│                  │designed to be simple and efficient. It's written in C++ and│           │           │                   │                      │                      │               │
+│                  │is widely used in both academia and industry for research   │           │           │                   │                      │                      │               │
+│                  │purposes and as a basis for derivative SAT solvers.         │           │           │                   │                      │                      │               │
+├──────────────────┼────────────────────────────────────────────────────────────┼───────────┼───────────┼───────────────────┼──────────────────────┼──────────────────────┼───────────────┤
+│minisat.prover    │                                                            │jni        │incr,prover│libminisatprover.so│libminisatprover.dylib│libminisatprover.dylib│               │
+├──────────────────┼────────────────────────────────────────────────────────────┼───────────┼───────────┼───────────────────┼──────────────────────┼──────────────────────┼───────────────┤
+│sat4j             │SAT4J is a Java library used for solving Boolean            │java       │incr       │                   │                      │                      │               │
+│                  │Satisfiability (SAT) problems and more generally            │           │           │                   │                      │                      │               │
+│                  │Pseudo-Boolean (PB) problems. It is an open-source project  │           │           │                   │                      │                      │               │
+│                  │under the GNU LGPL license, providing various SAT and MaxSAT│           │           │                   │                      │                      │               │
+│                  │solvers in Java. It is very reliable and works on all       │           │           │                   │                      │                      │               │
+│                  │platforms                                                   │           │           │                   │                      │                      │               │
+├──────────────────┼────────────────────────────────────────────────────────────┼───────────┼───────────┼───────────────────┼──────────────────────┼──────────────────────┼───────────────┤
+│sat4j.light       │SAT4J is a Java library used for solving Boolean            │java       │incr       │                   │                      │                      │               │
+│                  │Satisfiability (SAT) problems and more generally            │           │           │                   │                      │                      │               │
+│                  │Pseudo-Boolean (PB) problems. It is an open-source project  │           │           │                   │                      │                      │               │
+│                  │under the GNU LGPL license, providing various SAT and MaxSAT│           │           │                   │                      │                      │               │
+│                  │solvers in Java. It is very reliable and works on all       │           │           │                   │                      │                      │               │
+│                  │platforms                                                   │           │           │                   │                      │                      │               │
+├──────────────────┼────────────────────────────────────────────────────────────┼───────────┼───────────┼───────────────────┼──────────────────────┼──────────────────────┼───────────────┤
+│sat4j.pmax        │SAT4J is a Java library used for solving Boolean            │java       │incr,max   │                   │                      │                      │               │
+│                  │Satisfiability (SAT) problems and more generally            │           │           │                   │                      │                      │               │
+│                  │Pseudo-Boolean (PB) problems. It is an open-source project  │           │           │                   │                      │                      │               │
+│                  │under the GNU LGPL license, providing various SAT and MaxSAT│           │           │                   │                      │                      │               │
+│                  │solvers in Java. It is very reliable and works on all       │           │           │                   │                      │                      │               │
+│                  │platforms                                                   │           │           │                   │                      │                      │               │
+├──────────────────┼────────────────────────────────────────────────────────────┼───────────┼───────────┼───────────────────┼──────────────────────┼──────────────────────┼───────────────┤
+│yices.external    │                                                            │jni        │max        │yices              │yices                 │yices                 │yices          │
+└──────────────────┴────────────────────────────────────────────────────────────┴───────────┴───────────┴───────────────────┴──────────────────────┴──────────────────────┴───────────────┘
+
