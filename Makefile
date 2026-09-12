@@ -33,10 +33,13 @@ build: alloyIG.jar
 # alloyIG.jar is built from source (it is not committed); --release 17
 # matches the Alloy 6.2.0 class-file level and the CI toolchain, so a newer
 # local JDK cannot produce classes an older runtime refuses to load.
-alloyIG.jar: $(ALLOY_JAR) src/manifest src/org/clafer/ig/AlloyIG.java src/org/clafer/ig/Util.java src/org/clafer/ig/AlloyIGException.java
+# The org/alloytools tree is a classpath shadow of one Alloy 6.2.0 class
+# carrying the unreleased upstream UNSAT-core fix (AlloyTools issue #311);
+# see the header of src/org/alloytools/.../MiniSatProver.java.
+alloyIG.jar: $(ALLOY_JAR) src/manifest src/org/clafer/ig/AlloyIG.java src/org/clafer/ig/Util.java src/org/clafer/ig/AlloyIGException.java src/org/alloytools/solvers/natv/minisatprover/MiniSatProver.java
 	mkdir -p dist/javabuild
-	javac --release 17 -cp "$(ALLOY_JAR)" -d dist/javabuild src/org/clafer/ig/AlloyIG.java src/org/clafer/ig/Util.java src/org/clafer/ig/AlloyIGException.java
-	jar cfm alloyIG.jar src/manifest -C dist/javabuild org/clafer/ig/
+	javac --release 17 -cp "$(ALLOY_JAR)" -d dist/javabuild src/org/clafer/ig/AlloyIG.java src/org/clafer/ig/Util.java src/org/clafer/ig/AlloyIGException.java src/org/alloytools/solvers/natv/minisatprover/MiniSatProver.java
+	jar cfm alloyIG.jar src/manifest -C dist/javabuild org/clafer/ig/ -C dist/javabuild org/alloytools/
 
 .PHONY : test
 

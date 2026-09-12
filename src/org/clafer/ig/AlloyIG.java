@@ -112,8 +112,13 @@ public final class AlloyIG {
             this.x2 = x2;
         }
 
-        public Pos getPos() {
-            return new Pos("", x, y, x2, y2);
+        public Pos getPos(String filename) {
+            // Pos.equals compares filenames.  Alloy 6's
+            // parseEverything_fromString parses via a temporary file, so AST
+            // positions carry that file's name; a constraint position must
+            // carry the same name to match (the 4.2-era in-memory parse used
+            // "" here).
+            return new Pos(filename, x, y, x2, y2);
         }
     }
 
@@ -271,6 +276,10 @@ public final class AlloyIG {
         // (Both property spellings, for old and new slf4j-simple versions.)
         System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "warn");
         System.setProperty("org.slf4j.simplelogger.defaultlog", "warn");
+        // With proof logging, prover peers are released by the finalizer (the
+        // proof outlives the solve); NativeSolver logs each such release at
+        // WARN, which would spam claferIG's console on every unsat core.
+        System.setProperty("org.slf4j.simpleLogger.log.kodkod.engine.satlab.NativeSolver", "error");
         try {
             run(args);
         } catch (EOFException e) {
@@ -292,6 +301,7 @@ public final class AlloyIG {
         CompModule world = null;
         SafeList<Sig> sigs = null;
         Command command = null;
+        String modelFilename = "";
 
         A4Solution ans = null;
         Operation operation = null;
@@ -322,6 +332,7 @@ public final class AlloyIG {
                 world = CompUtil.parseEverything_fromString(rep, load.getModel());
                 sigs = world.getAllSigs();
                 command = world.getAllCommands().get(0);
+                modelFilename = command.pos.filename;
 
                 // Send back all the sigs
                 writeMessage(Integer.toString(sigs.size()));
@@ -380,7 +391,7 @@ public final class AlloyIG {
                 command = extra.getCommand();
             } else if (operation instanceof RemoveConstraintOperation) {
                 RemoveConstraintOperation removeConstraint = (RemoveConstraintOperation) operation;
-                Pos constraint = removeConstraint.getPos();
+                Pos constraint = removeConstraint.getPos(modelFilename);
 
                 Command newCommand = removeGlobalConstraint(constraint, command);
                 if (newCommand == null) {
