@@ -20,11 +20,11 @@ github-sha: f38f51f47b14652cbfe7d2ed689174543fa2c8b1 (on pull_request events thi
 github-run: 34713586523
 
 == new Alloy 6.2 capture (local aarch64 macOS)
-date-utc: 2026-09-12T19:13:07Z
+date-utc: 2026-09-12T19:35:06Z
 claferIG: ClaferIG 0.5.1
 java: openjdk version "21.0.2" 2024-01-16
 arch: arm64  os: Darwin
 invocation: claferIG --all=2 --json <model>.cfr  (timeout 120s per model)
 corpus: test/positive/*.cfr (16 models)
-claferIG-commit: 0555d7998bba16885f2b20b5d47f8fcfda70c51d
+claferIG-commit: e6eff4a419ef17a40fb6d598f714976c65c7d403
 clafer-sibling-commit: d48dffc159b7b4b112532899ef2183bd0cf85d24
