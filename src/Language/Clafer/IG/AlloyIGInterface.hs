@@ -80,7 +80,7 @@ runAlloyIGT :: MonadIO m => AlloyIGT m a -> m a
 runAlloyIGT run =
     do
         execPath <- liftIO $ executableDirectory
-        proce     <- liftIO $ pipeProcess "java" ["-Djava.library.path=" ++ execPath ++ "lib" , "-jar", execPath ++ "alloyIG.jar"]
+        proce     <- liftIO $ pipeProcess "java" ["-jar", execPath ++ "alloyIG.jar"]
 
         runReaderT (evalStateT (unwrap run) Nothing) proce
     where
