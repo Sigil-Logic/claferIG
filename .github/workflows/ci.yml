@@ -1,7 +1,9 @@
-# CI for the Sigil-Logic claferIG fork (Sigil-Logic/clafer#7).
-# x86_64 Linux runners: full build + test (including the MiniSat-dependent
-# strMapCheck, which cannot run on Apple Silicon), plus capture of the
-# Alloy 4.2 behavioral baseline that feeds Sigil-Logic/clafer#5.
+# CI for the Sigil-Logic claferIG fork (Sigil-Logic/clafer#7, #5).
+# x86_64 Linux runners: full build + test plus capture of the behavioral
+# baseline (Alloy 6.2 since Sigil-Logic/clafer#5; the frozen Alloy 4.2
+# reference lives in .evidence/alloy42-baseline/).  A macOS arm64 job
+# provides durable evidence of the Apple Silicon support the Alloy 6.2
+# port introduced (Alloy 6.2 bundles darwin/arm64 solver natives).
 # Actions are pinned to full commit SHAs (Dependabot keeps them current);
 # only global stack/pantry data is cached, keyed on the dependency plan of
 # both packages (this repository and the sibling clafer).
@@ -15,7 +17,7 @@ on:
 
 jobs:
   build-test-baseline:
-    name: Build, test, and Alloy 4.2 baseline (x86_64 Linux)
+    name: Build, test, and behavioral baseline (x86_64 Linux)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -76,21 +78,80 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-${{ runner.arch }}-stack-claferig-
 
-      - name: Extract the MiniSat prover native (amd64-linux)
-        run: make lib
-
-      - name: Build (stack build + jar/native staging)
+      - name: Build (stack build + jar staging)
         run: make build
 
       - name: Test (full suite, strMapCheck included)
         run: make test
 
-      - name: Capture the Alloy 4.2 behavioral baseline
-        run: bash scripts/capture-alloy42-baseline.sh 2 baseline-out
+      - name: Capture the behavioral baseline (Alloy 6.2)
+        run: bash scripts/capture-alloy-baseline.sh 2 baseline-out
 
       - name: Upload baseline artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: alloy42-baseline
+          name: alloy-baseline
           path: claferIG/baseline-out
           if-no-files-found: error
+
+  build-test-macos-arm64:
+    name: Build and test (macOS arm64)
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: claferIG
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: claferIG
+
+      - name: Resolve sibling clafer repository ref (companion branch or master)
+        id: sibling
+        run: |
+          REF=master
+          HEAD_REF="${GITHUB_HEAD_REF:-}"
+          if [ -n "$HEAD_REF" ]; then
+            CANDIDATE="${HEAD_REF/#feature\/clafer-/feature/}"
+            for TRY in "$CANDIDATE" "$HEAD_REF"; do
+              if git ls-remote --exit-code --heads https://github.com/Sigil-Logic/clafer.git "$TRY" >/dev/null 2>&1; then
+                REF="$TRY"
+                break
+              fi
+            done
+          fi
+          echo "Sibling clafer ref: $REF"
+          echo "ref=$REF" >> "$GITHUB_OUTPUT"
+
+      - name: Check out sibling clafer (stack package '../clafer')
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: Sigil-Logic/clafer
+          ref: ${{ steps.sibling.outputs.ref }}
+          path: clafer
+
+      - name: Set up Java (arm64 Temurin)
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up stack
+        uses: haskell-actions/setup@cd0d9bdd65b20557f41bea4dbe43d0b5fbbfe553 # v2.11.0
+        with:
+          enable-stack: true
+          stack-version: '3.11.1'
+          stack-no-global: true
+
+      - name: Cache stack (global pantry and snapshots)
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.stack
+          key: ${{ runner.os }}-${{ runner.arch }}-stack-claferig-${{ hashFiles('claferIG/stack.yaml', 'claferIG/claferIG.cabal', 'clafer/stack.yaml', 'clafer/clafer.cabal') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-stack-claferig-
+
+      - name: Build (stack build + jar staging)
+        run: make build
+
+      - name: Test (full suite, native MiniSat prover on arm64)
+        run: make test
